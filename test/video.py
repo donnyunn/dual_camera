@@ -51,17 +51,6 @@ def getFrameStacked(f1, f2):
 
     return frame
 
-def getFrameTexted(frame, text):
-    text_location = (25, 25)
-    font = cv2.FONT_ITALIC
-    scale = 1
-    color = (0, 0, 255)
-    thick = 2
-    line = cv2.LINE_8
-    ret = cv2.putText(frame, text, text_location, font, scale, color, thick, line, False)
-
-    return ret
-
 class opencv:
     def initCameraDuo(self, path1, path2):
         self.cap1 = cv2.VideoCapture(path1)
@@ -73,6 +62,22 @@ class opencv:
         self.cap1.set(4, 480)
         self.cap2.set(3, 640)
         self.cap2.set(4, 480)
+
+        return self.fps
+
+    def getFPS(self):
+        return self.fps
+    
+    def getFrameTexted(self, frame, text):
+        text_location = (25, 25)
+        font = cv2.FONT_ITALIC
+        scale = 1
+        color = (0, 0, 255)
+        thick = 2
+        line = cv2.LINE_8
+        ret = cv2.putText(frame, text, text_location, font, scale, color, thick, line, False)
+
+        return ret
 
     def getCameraFrame(self):
         isNextFrameAvail1, frame1 = self.cap1.read()
@@ -92,3 +97,7 @@ class opencv:
         key = cv2.waitKey(ms)
         return key
     
+    def quit(self):
+        self.cap1.release()
+        self.cap2.release()
+        cv2.destroyAllWindows()
