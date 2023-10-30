@@ -3,3 +3,4 @@ class MODE:
     STOP = 1
     SLOW_PLAY = 2
     SLOW_STOP = 3
+    IDLE = 4
