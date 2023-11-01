@@ -1,26 +1,27 @@
 import video
 import defines
-import pyudev
+# import pyudev
 
 mode = defines.MODE()
 v = video.opencv()
 
-def find_all_usb_webcam_paths():
-    context = pyudev.Context()
-    webcam_paths = []
+# def find_all_usb_webcam_paths():
+#     context = pyudev.Context()
+#     webcam_paths = []
 
-    for device in context.list_devices(subsystem='video4linux'):
-        # USB 웹캠 장치를 찾음
-        if device.sys_name.startswith("video"):
-            webcam_paths.append(device.device_node)
+#     for device in context.list_devices(subsystem='video4linux'):
+#         # USB 웹캠 장치를 찾음
+#         if device.sys_name.startswith("video"):
+#             webcam_paths.append(device.device_node)
 
-    return webcam_paths
+#     return webcam_paths
 try:
-    webcam_paths = find_all_usb_webcam_paths()
-    print(webcam_paths)
+#     webcam_paths = find_all_usb_webcam_paths()
+#     print(webcam_paths)
 
-    FPS = v.initCameraDuo(webcam_paths[2], webcam_paths[0])
+    # FPS = v.initCameraDuo(webcam_paths[2], webcam_paths[0])
     #FPS = v.initCameraDuo("/dev/video0", "/dev/video2")
+    FPS = v.initCameraDuo("", "")
     print(FPS)
 
     frame_rec = []
@@ -34,7 +35,6 @@ try:
 
     slow_level = 1
     frame = v.getCameraFrame()
-    print(frame)
     v.playFrame(frame, "")
 except:
     #v.quit()
