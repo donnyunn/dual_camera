@@ -120,13 +120,14 @@ class opencv:
         frame = getFrameStacked(frame1, frame2)
         return frame
 
-    def playFrame(self, frame, userMsg):
+    def playFrame(self, frame, userMsg = "", userMsg2 = ""):
         screen_w, screen_h = pyautogui.size()
 
         h = len(frame)
         w = len(frame[0])
         empty_frame = np.zeros((screen_w-w, h, 3), dtype=np.uint8)
         cv2.putText(empty_frame, userMsg, (60, 240), cv2.FONT_ITALIC, 4, (255,255,255),4,cv2.LINE_8,False)
+        cv2.putText(empty_frame, userMsg2, (120, 360), cv2.FONT_ITALIC, 2, (0, 0, 255),2,cv2.LINE_8,False)
         empty_frame = Rotate(empty_frame, 270)
         frame = np.hstack((frame, empty_frame))
 
@@ -146,4 +147,4 @@ class opencv:
         except:
             pass
 
-        os.system("shutdown -h now")
+        # os.system("shutdown -h now")
