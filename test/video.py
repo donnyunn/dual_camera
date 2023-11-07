@@ -60,6 +60,20 @@ def getFrameStacked(f1, f2):
     return frame
 
 class opencv:
+    IMG1_LIVEMODE = cv2.imread('img/LIVEMODE.png')
+    IMG1_REVIEWMODE = cv2.imread('img/REVIEWMODE.png')
+    IMG2_X10 = cv2.imread('img/X10.png')
+    IMG2_X05 = cv2.imread('img/X05.png')
+    IMG2_X025 = cv2.imread('img/X025.png')
+    IMG2_X012 = cv2.imread('img/X012.png')
+    IMG3_PLAY = cv2.imread('img/PLAY.png')
+    IMG3_PAUSE = cv2.imread('img/PAUSE.png')
+    IMG3_READY = cv2.imread('img/READY.png')
+    IMG3_REPLAY = cv2.imread('img/REPLAY.png')
+    IMG3_FF = cv2.imread('img/FF.png')
+    IMG3_REW = cv2.imread('img/REW.png')
+    IMG3 = [IMG3_READY, IMG3_PLAY, IMG3_REPLAY, IMG3_PAUSE, IMG3_FF, IMG3_REW]
+
     def initCameraDuo(self, path1, path2):
         screen_w, screen_h = pyautogui.size()
         pyautogui.FAILSAFE = False  
@@ -120,14 +134,41 @@ class opencv:
         frame = getFrameStacked(frame1, frame2)
         return frame
 
-    def playFrame(self, frame, userMsg = "", userMsg2 = ""):
+    def playFrame(self, frame, userMsg = "", userMsg2 = "", mode = 0, slow = 1, status = 0):
         screen_w, screen_h = pyautogui.size()
 
         h = len(frame)
         w = len(frame[0])
         empty_frame = np.zeros((screen_w-w, h, 3), dtype=np.uint8)
-        cv2.putText(empty_frame, userMsg, (60, 240), cv2.FONT_ITALIC, 4, (255,255,255),4,cv2.LINE_8,False)
-        cv2.putText(empty_frame, userMsg2, (120, 360), cv2.FONT_ITALIC, 2, (0, 0, 255),2,cv2.LINE_8,False)
+        position1 = (25, 25)
+        area1 = (1030, 115)
+        if mode == 0:
+            img1 = cv2.resize(self.IMG1_LIVEMODE, area1)
+        else:
+            img1 = cv2.resize(self.IMG1_REVIEWMODE, area1)
+        empty_frame[position1[1]:position1[1]+len(img1), position1[0]:position1[0]+len(img1[0])] = img1
+        
+        position2 = (565, 215)
+        area2 = (400, 96)
+        if slow == 1:
+            img2 = cv2.resize(self.IMG2_X10, area2)
+        elif slow == 2:
+            img2 = cv2.resize(self.IMG2_X05, area2)
+        elif slow == 4:
+            img2 = cv2.resize(self.IMG2_X025, area2)
+        elif slow == 8:
+            img2 = cv2.resize(self.IMG2_X012, area2)
+        empty_frame[position2[1]:position2[1]+len(img2), position2[0]:position2[0]+len(img2[0])] = img2
+
+        position3 = (262, 350)
+        area3 = (555, 174)
+        img3 = cv2.resize(self.IMG3[status], area3)
+
+        empty_frame[position3[1]:position3[1]+len(img3), position3[0]:position3[0]+len(img3[0])] = img3
+
+        cv2.putText(empty_frame, userMsg, (60, 290), cv2.FONT_HERSHEY_SIMPLEX, 4, (255,255,255),4,cv2.FILLED,False)
+        cv2.putText(empty_frame, userMsg2, (60, 450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255),4,cv2.FILLED,False)
+
         empty_frame = Rotate(empty_frame, 270)
         frame = np.hstack((frame, empty_frame))
 

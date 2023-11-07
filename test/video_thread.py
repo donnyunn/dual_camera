@@ -53,24 +53,35 @@ if __name__ == '__main__':
                 play_point = length - delay_point - 1
                 countdown = 0
 
-            msg = f'{(play_point / FPS):5.1f}s ' + f'(x{float(1/(slow_level)):.3f})'
-            msg2 = 'Live ' + f'{countdown:5d}'
-            v.playFrame(BUFFER[play_point], msg, msg2)
+            msg = f'{(play_point / FPS):5.1f}s'
+            if countdown != 0:
+                msg2 = f'{countdown:5d}'
+            else:
+                msg2 = ""
+            v.playFrame(BUFFER[play_point], msg, msg2, state, 1, 1)
         elif state == mode.REPLAY:
             if slow_cnt % slow_level == 0:
                 if play_point < (len(BUFFER) - 1):
                     play_point = play_point + 1
+                else:
+                    state = mode.STOP
                 
-                msg = f'{play_point / FPS:5.1f}s ' + f'(x{float(1/(slow_level)):.3f})'
-                msg2 = 'Replay'
-                v.playFrame(BUFFER[play_point], msg, msg2)
+                msg = f'{play_point / FPS:5.1f}s'
+                msg2 = ""
+                v.playFrame(BUFFER[play_point], msg, msg2, state, slow_level, 2)
             slow_cnt = slow_cnt + 1
         elif state == mode.STOP:
-            msg = f'{play_point / FPS:5.1f}s ' + f'(x{float(1/(slow_level)):.3f})'
-            msg2 = 'Replay'
-            v.playFrame(BUFFER[play_point], msg, msg2)
+            status = 3
+            if key & 0xff == ord('d'):
+                status = 4
+            elif key & 0xff == ord('a'):
+                status = 5
+            msg = f'{play_point / FPS:5.1f}s'
+            msg2 = ""
+            v.playFrame(BUFFER[play_point], msg, msg2, state, slow_level, status)
+            status = 3
         elif state == mode.IDLE:
-            msg = f'{play_point / FPS:5.1f}s ' + f'(x{float(1/(slow_level)):.3f})'
+            msg = f'{play_point / FPS:5.1f}s'
             v.playFrame(frame, msg)
 
         key = v.waitKey(1)
