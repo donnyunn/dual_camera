@@ -80,19 +80,19 @@ class opencv:
         pyautogui.moveTo(screen_w, screen_h)     
         pyautogui.FAILSAFE = True  
 
-        # self.cap1 = cv2.VideoCapture(path1, cv2.CAP_V4L2)
-        # self.cap2 = cv2.VideoCapture(path2, cv2.CAP_V4L2)
-        self.cap1 = cv2.VideoCapture(0)
-        self.cap2 = cv2.VideoCapture(1)
+        self.cap1 = cv2.VideoCapture(path1, cv2.CAP_V4L2)
+        self.cap2 = cv2.VideoCapture(path2, cv2.CAP_V4L2)
+        # self.cap1 = cv2.VideoCapture(0)
+        # self.cap2 = cv2.VideoCapture(1)
         
-        # self.cap1.set(3, 1280)
-        # self.cap1.set(4, 720)
-        # self.cap2.set(3, 1280)
-        # self.cap2.set(4, 720)
-        self.cap1.set(3, 640)
-        self.cap1.set(4, 480)
-        self.cap2.set(3, 640)
-        self.cap2.set(4, 480)
+        self.cap1.set(3, 1280)
+        self.cap1.set(4, 720)
+        self.cap2.set(3, 1280)
+        self.cap2.set(4, 720)
+        # self.cap1.set(3, 640)
+        # self.cap1.set(4, 480)
+        # self.cap2.set(3, 640)
+        # self.cap2.set(4, 480)
         # self.cap2.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         # self.cap2.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         
@@ -188,4 +188,4 @@ class opencv:
         except:
             pass
 
-        # os.system("shutdown -h now")
+        os.system("shutdown -h now")

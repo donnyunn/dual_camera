@@ -2,19 +2,38 @@ import video
 import defines
 from multiprocessing import Process, Queue
 import time
+import pyudev
+
+def find_all_usb_webcam_paths():
+    context = pyudev.Context()
+    webcam_paths = []
+
+    for device in context.list_devices(subsystem='video4linux'):
+        # USB 웹캠 장치를 찾음
+        if device.sys_name.startswith("video"):
+            webcam_paths.append(device.device_node)
+
+    return webcam_paths
 
 def recorder(q,ctl):
     v = video.opencv()
+
+    webcam_paths = find_all_usb_webcam_paths()
+    print(webcam_paths)
+
     FPS = 0
-    FPS = v.initCameraDuo("", "")
+    FPS = v.initCameraDuo(webcam_paths[0], webcam_paths[2])
     print(FPS)
     if FPS == 0:
         print("init Camera Fail")
         v.quit()
         return
     while ctl.empty():
-        f = v.getCameraFrame()
-        q.put(f)
+        try:
+            f = v.getCameraFrame()
+            q.put(f)
+        except:
+            pass
     print("stop recording")
     v.quit()
 
@@ -30,6 +49,7 @@ if __name__ == '__main__':
     init_frame = frame_queue.get()
     BUFFER = []
     FPS = 30
+    end_point = FPS * 180
     play_point = 0
     delay_point = 0
     slow_level = 1
@@ -42,7 +62,7 @@ if __name__ == '__main__':
 
         if state == mode.PLAY:
             length = len(BUFFER)
-            if length >= 5400: # 30 * 180
+            if length >= (end_point + delay_point): # 30 * 180
                 del BUFFER[0]
             BUFFER.append(frame)
 
