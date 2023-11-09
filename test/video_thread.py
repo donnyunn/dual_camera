@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
             if delay_point >= length:
                 play_point = 0
-                countdown = int((delay_point - length) / FPS) + 1
+                countdown = int((delay_point - length - 1) / FPS) + 1
             else:
                 play_point = length - delay_point - 1
                 countdown = 0
@@ -111,9 +111,10 @@ if __name__ == '__main__':
                 if slow_level > 8:
                     slow_level = 1
         elif key & 0xff == ord('d'):
-            state = mode.STOP
-            if play_point <= (len(BUFFER) - 15):
-                play_point = play_point + 15
+            if state != mode.IDLE:
+                state = mode.STOP
+                if play_point <= (len(BUFFER) - 15):
+                    play_point = play_point + 15
         elif key & 0xff == ord('p'):
             if state == mode.PLAY:
                 state = mode.STOP
@@ -122,11 +123,13 @@ if __name__ == '__main__':
             elif state == mode.STOP:
                 state = mode.REPLAY
         elif key & 0xff == ord('a'):
-            state = mode.STOP
-            if play_point >= 15:
-                play_point = play_point - 15
+            if state != mode.IDLE:
+                state = mode.STOP
+                if play_point >= 15:
+                    play_point = play_point - 15
         elif key & 0xff == ord('r'):
             state = mode.PLAY
+            play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('0'):
