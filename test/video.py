@@ -99,13 +99,16 @@ class opencv:
         
         self.cap1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
         self.cap2.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
+
         self.cap1.set(cv2.CAP_PROP_FPS, 30)
         self.cap2.set(cv2.CAP_PROP_FPS, 30)
         print(self.cap1.get(cv2.CAP_PROP_FPS))
         print(self.cap2.get(cv2.CAP_PROP_FPS))
-
         self.fps = decideFPS(int(self.cap1.get(cv2.CAP_PROP_FPS)), int(self.cap2.get(cv2.CAP_PROP_FPS)))
         #self.fps = 30
+
+        self.cap1.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.cap2.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         return self.fps
 
@@ -178,6 +181,20 @@ class opencv:
         cv2.namedWindow('frame', cv2.WINDOW_FULLSCREEN)
         cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         cv2.imshow('frame', frame)
+
+    def Record(self, buf):
+        try:
+            width, height = buf[0].shape[:2]
+            frame_size = (width, height)
+            fourcc = cv2.VideoWriter_fourcc(*'XVID')
+            out = cv2.VideoWriter('/home/donnyunn/Desktop/LastRecord.mp4',fourcc,30.0,frame_size)
+            for frame in buf:
+                frame = cv2.transpose(frame)
+                frame = cv2.flip(frame, 1)
+                out.write(frame)
+            out.release()
+        except:
+            pass
 
     def waitKey(self, ms):
         key = cv2.waitKey(ms)

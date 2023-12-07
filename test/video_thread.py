@@ -24,6 +24,7 @@ def recorder(q,ctl):
     FPS = 0
     FPS = v.initCameraDuo(webcam_paths[0], webcam_paths[2])
     print(FPS)
+    f = v.getCameraFrame()
     if FPS == 0:
         print("init Camera Fail")
         v.quit()
@@ -36,6 +37,13 @@ def recorder(q,ctl):
             pass
     print("stop recording")
     v.quit()
+
+def write_worker(v, buffer):
+    v.Record(buffer)
+
+def writer(v, buffer):
+    write_process = Process(target=write_worker, args=(v,buffer,))
+    write_process.start()
 
 if __name__ == '__main__':
     FPS = 30
@@ -134,6 +142,7 @@ if __name__ == '__main__':
                 state = mode.PLAY
             else:
                 state = mode.IDLE
+                writer(v, BUFFER)
             play_point = 0
             slow_level = 1
             BUFFER.clear()
