@@ -39,9 +39,10 @@ def getFrameStacked(f1, f2):
     f1 = cv2.resize(f1, (head_w, head_h))
     f1 = Rotate(f1, 270)
 
-    f2 = f2[0:720 ,100:1180]
+    # f2 = f2[0:720 ,100:1180]
     body_w = 1080
-    body_h = 720#int(480 *body_w/640)
+    # body_h = 720#int(480 *body_w/640)
+    body_h = 610
     f2 = cv2.resize(f2, (body_w, body_h))
     f2 = Rotate(f2, 270)
 
