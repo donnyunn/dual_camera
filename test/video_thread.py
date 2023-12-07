@@ -38,17 +38,18 @@ def recorder(q,ctl):
     v.quit()
 
 if __name__ == '__main__':
+    FPS = 30
+    BUFFER = []
+
     v = video.opencv()
     mode = defines.MODE()
-    frame_queue = Queue()
+    frame_queue = Queue(5671)
     control_queue = Queue()
 
     record_process = Process(target=recorder, args=(frame_queue,control_queue,))
     record_process.start()
 
     init_frame = frame_queue.get()
-    BUFFER = []
-    FPS = 30
     end_point = FPS * 180
     play_point = 0
     delay_point = 0
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     slow_cnt = 0
 
     state = mode.IDLE
+    # state = mode.PLAY
 
     while True:
         frame = frame_queue.get()

@@ -125,6 +125,8 @@ class opencv:
     def getCameraFrame(self):
         isNextFrameAvail1, frame1 = self.cap1.read()
         isNextFrameAvail2, frame2 = self.cap2.read()
+        # isNextFrameAvail1 = isNextFrameAvail2
+        # frame1 = frame2
 
         if not isNextFrameAvail1 or not isNextFrameAvail2:
             print("notNextFrameAvail")
