@@ -130,7 +130,10 @@ if __name__ == '__main__':
                 if play_point >= 15:
                     play_point = play_point - 15
         elif key & 0xff == ord('r'):
-            state = mode.PLAY
+            if state == mode.IDLE:
+                state = mode.PLAY
+            else:
+                state = mode.IDLE
             play_point = 0
             slow_level = 1
             BUFFER.clear()
