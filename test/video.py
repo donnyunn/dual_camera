@@ -100,8 +100,8 @@ class opencv:
         self.cap1.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
         self.cap2.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
 
-        self.cap1.set(cv2.CAP_PROP_FPS, 30)
-        self.cap2.set(cv2.CAP_PROP_FPS, 30)
+        self.cap1.set(cv2.CAP_PROP_FPS, 60)
+        self.cap2.set(cv2.CAP_PROP_FPS, 60)
         print(self.cap1.get(cv2.CAP_PROP_FPS))
         print(self.cap2.get(cv2.CAP_PROP_FPS))
         self.fps = decideFPS(int(self.cap1.get(cv2.CAP_PROP_FPS)), int(self.cap2.get(cv2.CAP_PROP_FPS)))
@@ -187,7 +187,7 @@ class opencv:
             width, height = buf[0].shape[:2]
             frame_size = (width, height)
             fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            out = cv2.VideoWriter('/home/donnyunn/Desktop/LastRecord.mp4',fourcc,30.0,frame_size)
+            out = cv2.VideoWriter('../../Desktop/LastRecord.mp4',fourcc,60.0,frame_size)
             for frame in buf:
                 frame = cv2.transpose(frame)
                 frame = cv2.flip(frame, 1)

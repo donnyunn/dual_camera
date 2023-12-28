@@ -46,7 +46,7 @@ def writer(v, buffer):
     write_process.start()
 
 if __name__ == '__main__':
-    FPS = 30
+    FPS = 60
     BUFFER = []
 
     v = video.opencv()
