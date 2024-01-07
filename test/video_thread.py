@@ -55,6 +55,7 @@ if __name__ == '__main__':
     control_queue = Queue()
 
     record_process = Process(target=recorder, args=(frame_queue,control_queue,))
+    time.sleep(1)
     record_process.start()
 
     init_frame = frame_queue.get()
