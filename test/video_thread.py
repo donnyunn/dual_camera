@@ -123,8 +123,8 @@ if __name__ == '__main__':
         elif key & 0xff == ord('d'):
             if state != mode.IDLE:
                 state = mode.STOP
-                if play_point <= (len(BUFFER) - 15):
-                    play_point = play_point + 15
+                if play_point <= (len(BUFFER) - 30):
+                    play_point = play_point + 30
         elif key & 0xff == ord('p'):
             if state == mode.PLAY:
                 state = mode.STOP
@@ -135,8 +135,8 @@ if __name__ == '__main__':
         elif key & 0xff == ord('a'):
             if state != mode.IDLE:
                 state = mode.STOP
-                if play_point >= 15:
-                    play_point = play_point - 15
+                if play_point >= 30:
+                    play_point = play_point - 30
         elif key & 0xff == ord('r'):
             if state == mode.IDLE:
                 state = mode.PLAY
