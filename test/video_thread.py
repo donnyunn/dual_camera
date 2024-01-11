@@ -49,6 +49,8 @@ if __name__ == '__main__':
     FPS = 30
     BUFFER = []
 
+    time.sleep(1)
+
     v = video.opencv()
     mode = defines.MODE()
     frame_queue = Queue(5671)
