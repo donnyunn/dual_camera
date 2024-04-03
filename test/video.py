@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import pyautogui
 import os
+from datetime import datetime
+import shutil
 
 def decideFPS(fps1, fps2):
     if (fps1 < fps2):
@@ -59,6 +61,35 @@ def getFrameStacked(f1, f2):
     # frame = np.hstack((frame, empty_frame))
 
     return frame
+
+def get_all_subdirectories(base_path):
+    subdirectories = []
+
+    try:
+        for root, dirs, files in os.walk(base_path):
+            for dir_name in dirs:
+                subdirectory_path = os.path.join(root, dir_name)
+                subdirectories.append(subdirectory_path)
+
+        return subdirectories
+
+    except FileNotFoundError:
+        print(f"path {base_path} is not exsited.")
+        return ''
+    except Exception as e:
+        print(f"error occured: {e}")
+        return ''
+
+def save_to_usb(file_path, usb_path):
+    try:
+        shutil.copy(file_path, usb_path)
+        now = datetime.now()
+        logtime = now.strftime("%Y-%m-%d_%H:%M:%S")
+        print(f"{logtime} > File saved: [{usb_path}]")
+    except FileNotFoundError:
+        print("File is not existed.")
+    except Exception as e:
+        print(f"error occured: {e}")
 
 class opencv:
     IMG1_LIVEMODE = cv2.imread('img/LIVEMODE.png')
@@ -184,10 +215,23 @@ class opencv:
 
     def Record(self, buf):
         try:
+            base_path = '/media'
+            subdirectories = get_all_subdirectories(base_path)
+            if subdirectories:
+                if os.path.isdir(subdirectories[1]):
+                    filename = subdirectories[1]
+                else:
+                    filename = '/home/dulab/Desktop/record'
+            else:
+                filename = '/home/dulab/Desktop/record'
+        except:
+            filename = '/home/dulab/Desktop/record'
+
+        try:
             width, height = buf[0].shape[:2]
             frame_size = (width, height)
-            fourcc = cv2.VideoWriter_fourcc(*'XVID')
-            out = cv2.VideoWriter('/home/donnyunn/Desktop/LastRecord.mp4',fourcc,30.0,frame_size)
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter('/home/dulab/Desktop/LastRecord.mp4',fourcc,30.0,frame_size)
             for frame in buf:
                 frame = cv2.transpose(frame)
                 frame = cv2.flip(frame, 1)
@@ -195,12 +239,22 @@ class opencv:
             out.release()
         except:
             pass
+            
+        try:
+            now = datetime.now()
+            date_time = now.strftime("%Y-%m-%d_%H-%M-%S") + '.mp4'
+            filename = filename + '/' + date_time
+            save_to_usb('/home/dulab/Desktop/LastRecord.mp4', filename)
+        except:
+            pass
+
 
     def waitKey(self, ms):
         key = cv2.waitKey(ms)
         return key
     
     def quit(self):
+        print('Shutting down')
         try:
             self.cap1.release()
             self.cap2.release()
@@ -208,4 +262,4 @@ class opencv:
         except:
             pass
 
-        os.system("shutdown -h now")
+        # os.system("shutdown -h now")
