@@ -1,9 +1,10 @@
 import video
 import defines
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Pipe
 import time
 from datetime import datetime
 import pyudev
+import os
 
 def find_all_usb_webcam_paths():
     context = pyudev.Context()
@@ -39,17 +40,21 @@ def recorder(q,ctl):
     print("stop recording")
     v.quit()
 
-def write_worker(v, buffer):
-    v.Record(buffer)
+def write_worker(v, buffer,p):
+    p.send(["File Writing", (0,0,255), 0])
+    result = v.Record(buffer)
+    p.send([result[0], result[1], result[2]])
+    # time.sleep(10)
+    # p.send(['',(0,0,0), result[2]])
 
-def writer(v, buffer):
-    write_process = Process(target=write_worker, args=(v,buffer,))
+def writer(v, buffer, pipe):
+    write_process = Process(target=write_worker, args=(v,buffer,pipe,))
     write_process.start()
 
 def log(msg):
     now = datetime.now()
     logtime = now.strftime("%Y-%m-%d_%H:%M:%S")
-    print(f'{logtime} > {msg}')
+    print(f'{logtime} [{msg}]')
 
 if __name__ == '__main__':
     FPS = 30
@@ -72,24 +77,44 @@ if __name__ == '__main__':
     slow_level = 1
     slow_cnt = 0
     blackbox_cnt = 0
+    blackbox_onoff = 0
+    blackbox_r, blackbox_s = Pipe()
+    blackbox_path = ''
+    blackbox_usb = 0
+    blackbox = ['',(0,0,0),blackbox_path]
+
+    try:
+        base_path = '/media'
+        subdirectories = v.get_all_subdirectories(base_path)
+        if subdirectories:
+            if os.path.isdir(subdirectories[1]):
+                blackbox_usb = 1
+                # print(subdirectories[1])
+    except:
+        blackbox_usb = 0
 
     state = mode.IDLE
-    log('Starting the program [Idle]')
+    log('Device ON (Idle)')
     # state = mode.PLAY
 
     while True:
         frame = frame_queue.get()
+        
+        if blackbox_r.poll():
+            blackbox = blackbox_r.recv()
+            blackbox_path = blackbox[2]
 
         if state == mode.PLAY:
             length = len(BUFFER)
             if length >= (end_point + delay_point): # 30 * 180
                 del BUFFER[0]
             BUFFER.append(frame)
-            blackbox_cnt = blackbox_cnt + 1
-            if blackbox_cnt >= 1800:
-                log(f'Saving Automatically.. ({len(BUFFER)-blackbox_cnt}:{len(BUFFER)-1})')
-                writer(v, BUFFER[len(BUFFER)-blackbox_cnt:len(BUFFER)-1])
-                blackbox_cnt = 0
+            if blackbox_onoff == 1:
+                blackbox_cnt = blackbox_cnt + 1
+                if blackbox_cnt >= 1800:
+                    log(f'Saving Automatically.. ({len(BUFFER)-blackbox_cnt}:{len(BUFFER)-1})')
+                    writer(v, BUFFER[len(BUFFER)-blackbox_cnt:len(BUFFER)-1], blackbox_s)
+                    blackbox_cnt = 0
 
             if delay_point >= length:
                 play_point = 0
@@ -103,7 +128,7 @@ if __name__ == '__main__':
                 msg2 = f'{countdown:5d}'
             else:
                 msg2 = ""
-            v.playFrame(BUFFER[play_point], msg, msg2, state, 1, 1)
+            v.playFrame(BUFFER[play_point], blackbox_onoff, msg, msg2, state, 1, 1, blackbox[0], blackbox[1])
         elif state == mode.REPLAY:
             if slow_cnt % slow_level == 0:
                 if play_point < (len(BUFFER) - 1):
@@ -114,7 +139,7 @@ if __name__ == '__main__':
                 
                 msg = f'{play_point / FPS:5.1f}s'
                 msg2 = ""
-                v.playFrame(BUFFER[play_point], msg, msg2, state, slow_level, 2)
+                v.playFrame(BUFFER[play_point], blackbox_onoff, msg, msg2, state, slow_level, 2, blackbox[0], blackbox[1])
             slow_cnt = slow_cnt + 1
         elif state == mode.STOP:
             status = 3
@@ -124,11 +149,11 @@ if __name__ == '__main__':
                 status = 5
             msg = f'{play_point / FPS:5.1f}s'
             msg2 = ""
-            v.playFrame(BUFFER[play_point], msg, msg2, state, slow_level, status)
+            v.playFrame(BUFFER[play_point], blackbox_onoff, msg, msg2, state, slow_level, status, blackbox[0], blackbox[1])
             status = 3
         elif state == mode.IDLE:
             msg = f'{play_point / FPS:5.1f}s'
-            v.playFrame(frame, msg)
+            v.playFrame(frame, blackbox_onoff, msg, bbMsg=blackbox[0], bbMsgColor=blackbox[1])
 
         key = v.waitKey(1)
         if key & 0xff == ord('s'):
@@ -136,116 +161,132 @@ if __name__ == '__main__':
                 slow_level = slow_level * 2
                 if slow_level > 8:
                     slow_level = 1                
-                log(f'Key pressed [Slow (1/{slow_level})]')
+                log(f'Key pressed Slow (1/{slow_level})')
+            elif state == mode.IDLE:
+                if blackbox_onoff == 0:
+                    blackbox_onoff = 1
+                else:
+                    blackbox_onoff = 0
+                log(f'Key pressed Blackbox ({blackbox_onoff})')
         elif key & 0xff == ord('d'):
             if state != mode.IDLE:
                 state = mode.STOP
-                log('Key pressed [FF]')
+                log('Key pressed FF')
                 if play_point <= (len(BUFFER) - 15):
                     play_point = play_point + 15
         elif key & 0xff == ord('p'):
             if state == mode.PLAY:
                 state = mode.STOP    
-                log('Key pressed [Pause]')
+                log('Key pressed Pause')
             elif state == mode.REPLAY:
                 state = mode.STOP
-                log('Key pressed [Pause]')
+                log('Key pressed Pause')
             elif state == mode.STOP:
                 state = mode.REPLAY
-                log('Key pressed [Replay]')
+                log('Key pressed Replay')
         elif key & 0xff == ord('a'):
             if state != mode.IDLE:
                 state = mode.STOP
-                log('Key pressed [REW]')
+                log('Key pressed REW')
                 if play_point >= 15:
                     play_point = play_point - 15                
         elif key & 0xff == ord('r'):
             if state == mode.IDLE:
                 state = mode.PLAY                
-                log('Key pressed [Record]')
+                # log('Key pressed Record')
+                if blackbox_onoff == 0:
+                    save = 'SAVE OFF'
+                else:
+                    save = 'SAVE ON'
+                if blackbox_usb == 0:
+                    usb = 'HDD'
+                else:
+                    usb = 'USB'
+                log(f'PLAY ON:{save}:{usb}')
             else:
                 state = mode.IDLE
-                log('Key pressed [Idle]')
-                if blackbox_cnt != 0:
-                    log(f'Saving Manually.. ({len(BUFFER)-blackbox_cnt}:{len(BUFFER)-1})')
-                    writer(v, BUFFER[len(BUFFER)-blackbox_cnt:len(BUFFER)-1])
-                    blackbox_cnt = 0
+                # log('Key pressed Ready')
+                if blackbox_onoff == 1:
+                    if blackbox_cnt != 0:
+                        # log(f'Saving Manually.. ({len(BUFFER)-blackbox_cnt}:{len(BUFFER)-1})')
+                        writer(v, BUFFER[len(BUFFER)-blackbox_cnt:len(BUFFER)-1], blackbox_s)
+                        blackbox_cnt = 0
                 
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('0'):
             state = mode.IDLE
-            log('Key pressed [0]')
+            log('Key pressed 0')
             delay_point = FPS * 0
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('1'):  
             state = mode.IDLE   
-            log('Key pressed [1]')
+            log('Key pressed 1')
             delay_point = FPS * 1
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('2'):
             state = mode.IDLE
-            log('Key pressed [2]')
+            log('Key pressed 2')
             delay_point = FPS * 2
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('3'):
             state = mode.IDLE
-            log('Key pressed [3]')
+            log('Key pressed 3')
             delay_point = FPS * 3
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('4'):
             state = mode.IDLE
-            log('Key pressed [4]')
+            log('Key pressed 4')
             delay_point = FPS * 4
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('5'):
             state = mode.IDLE
-            log('Key pressed [5]')
+            log('Key pressed 5')
             delay_point = FPS * 5
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('6'):
             state = mode.IDLE
-            log('Key pressed [6]')
+            log('Key pressed 6')
             delay_point = FPS * 6
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('7'):
             state = mode.IDLE
-            log('Key pressed [7]')
+            log('Key pressed 7')
             delay_point = FPS * 7
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('8'):
             state = mode.IDLE
-            log('Key pressed [8]')
+            log('Key pressed 8')
             delay_point = FPS * 8
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         elif key & 0xff == ord('9'):
             state = mode.IDLE
-            log('Key pressed [9]')
+            log('Key pressed 9')
             delay_point = FPS * 9
             play_point = 0
             slow_level = 1
             BUFFER.clear()
         if key & 0xff == ord('q'):
-            log('Key pressed [Power off]')
+            log('Device OFF')
             control_queue.put(key)
             break
 

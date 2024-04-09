@@ -62,35 +62,6 @@ def getFrameStacked(f1, f2):
 
     return frame
 
-def get_all_subdirectories(base_path):
-    subdirectories = []
-
-    try:
-        for root, dirs, files in os.walk(base_path):
-            for dir_name in dirs:
-                subdirectory_path = os.path.join(root, dir_name)
-                subdirectories.append(subdirectory_path)
-
-        return subdirectories
-
-    except FileNotFoundError:
-        print(f"path {base_path} is not exsited.")
-        return ''
-    except Exception as e:
-        print(f"error occured: {e}")
-        return ''
-
-def save_to_usb(file_path, usb_path):
-    try:
-        shutil.copy(file_path, usb_path)
-        now = datetime.now()
-        logtime = now.strftime("%Y-%m-%d_%H:%M:%S")
-        print(f"{logtime} > File saved: [{usb_path}]")
-    except FileNotFoundError:
-        print("File is not existed.")
-    except Exception as e:
-        print(f"error occured: {e}")
-
 class opencv:
     IMG1_LIVEMODE = cv2.imread('img/LIVEMODE.png')
     IMG1_REVIEWMODE = cv2.imread('img/REVIEWMODE.png')
@@ -105,6 +76,8 @@ class opencv:
     IMG3_FF = cv2.imread('img/FF.png')
     IMG3_REW = cv2.imread('img/REW.png')
     IMG3 = [IMG3_READY, IMG3_PLAY, IMG3_REPLAY, IMG3_PAUSE, IMG3_FF, IMG3_REW]
+    IMG4_OFF = cv2.imread('img/OFF.png')
+    IMG4_SAVING = cv2.imread('img/SAVING.png')
 
     def initCameraDuo(self, path1, path2):
         screen_w, screen_h = pyautogui.size()
@@ -171,12 +144,13 @@ class opencv:
         frame = getFrameStacked(frame1, frame2)
         return frame
 
-    def playFrame(self, frame, userMsg = "", userMsg2 = "", mode = 0, slow = 1, status = 0):
+    def playFrame(self, frame, blackbox_onoff = 0, userMsg = "", userMsg2 = "", mode = 0, slow = 1, status = 0, bbMsg = "", bbMsgColor = (0,0,0)):
         screen_w, screen_h = pyautogui.size()
 
         h = len(frame)
         w = len(frame[0])
         empty_frame = np.zeros((screen_w-w, h, 3), dtype=np.uint8)
+
         position1 = (25, 25)
         area1 = (1030, 115)
         if mode == 0:
@@ -200,11 +174,20 @@ class opencv:
         position3 = (262, 350)
         area3 = (555, 174)
         img3 = cv2.resize(self.IMG3[status], area3)
-
         empty_frame[position3[1]:position3[1]+len(img3), position3[0]:position3[0]+len(img3[0])] = img3
+        
+        position4 = (60, 500)
+        area4 = (77, 91)
+        if blackbox_onoff == 0:
+            img4 = cv2.resize(self.IMG4_OFF, area4)
+        else:
+            img4 = cv2.resize(self.IMG4_SAVING, area4)
+        empty_frame[position4[1]:position4[1]+len(img4), position4[0]:position4[0]+len(img4[0])] = img4
 
         cv2.putText(empty_frame, userMsg, (60, 290), cv2.FONT_HERSHEY_SIMPLEX, 4, (255,255,255),4,cv2.FILLED,False)
         cv2.putText(empty_frame, userMsg2, (60, 450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255),4,cv2.FILLED,False)
+
+        cv2.putText(empty_frame, bbMsg, (160, 550), cv2.FONT_HERSHEY_SIMPLEX, 1, bbMsgColor,2,cv2.FILLED,False)
 
         empty_frame = Rotate(empty_frame, 270)
         frame = np.hstack((frame, empty_frame))
@@ -212,11 +195,47 @@ class opencv:
         cv2.namedWindow('frame', cv2.WINDOW_FULLSCREEN)
         cv2.setWindowProperty('frame', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
         cv2.imshow('frame', frame)
+          
+    def get_all_subdirectories(self, base_path):
+        subdirectories = []
+
+        try:
+            for root, dirs, files in os.walk(base_path):
+                for dir_name in dirs:
+                    subdirectory_path = os.path.join(root, dir_name)
+                    subdirectories.append(subdirectory_path)
+
+            return subdirectories
+
+        except FileNotFoundError:
+            print(f"path {base_path} is not exsited.")
+            return ''
+        except Exception as e:
+            print(f"error occured: {e}")
+            return ''
+    
+    def save_to_usb(self, file_path, usb_path):
+        try:
+            shutil.copy(file_path, usb_path)
+            now = datetime.now()
+            logtime = now.strftime("%Y-%m-%d_%H:%M:%S")
+            # print(f"{logtime} > File saved: [{usb_path}]")
+            print(f"{logtime} [File Writing OK:{usb_path}]")
+            return "File Writing OK", (0,255,0)
+        except FileNotFoundError:
+            # print("File is not existed.")
+            print(f"{logtime} [File is not existed.]")
+            return "File is not existed", (0,0,255)
+        except Exception as e:
+            # print(f"error occured: {e}")
+            print(f"{logtime} [error occured:{e}]")
+            return e, (0,0,255)
 
     def Record(self, buf):
+        ret = "", (0,0,0), ""
         try:
             base_path = '/media'
-            subdirectories = get_all_subdirectories(base_path)
+            subdirectories = self.get_all_subdirectories(base_path)
             if subdirectories:
                 if os.path.isdir(subdirectories[1]):
                     filename = subdirectories[1]
@@ -244,10 +263,12 @@ class opencv:
             now = datetime.now()
             date_time = now.strftime("%Y-%m-%d_%H-%M-%S") + '.mp4'
             filename = filename + '/' + date_time
-            save_to_usb('/home/dulab/Desktop/LastRecord.mp4', filename)
+            msg, color = self.save_to_usb('/home/dulab/Desktop/LastRecord.mp4', filename)
+            ret = msg, color, filename
         except:
-            pass
+            pass  
 
+        return ret
 
     def waitKey(self, ms):
         key = cv2.waitKey(ms)
