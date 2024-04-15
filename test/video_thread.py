@@ -5,7 +5,6 @@ import time
 from datetime import datetime
 import pyudev
 import os
-from threading import Timer
 
 def find_all_usb_webcam_paths():
     context = pyudev.Context()
@@ -41,16 +40,24 @@ def recorder(q,ctl):
     print("stop recording")
     v.quit()
 
-def deleter_worker(p, result):
+def delete_worker(p, result):
+    time.sleep(10)
     p.send(['',(0,0,0), result[2]])
 
 def write_worker(v, buffer,p):
-    p.send(["File Writing", (0,0,255), 0])
-    result = v.Record(buffer)
-    p.send([result[0], result[1], result[2]])
-    Timer(10, deleter_worker, args=(p, result)).start()
-    # time.sleep(10)
-    # p.send(['',(0,0,0), result[2]])
+    try:
+        p.send(["File Writing", (0,0,255), 0])
+        result = v.Record(buffer)
+        p.send([result[0], result[1], result[2]])
+        delete_process = Process(target=delete_worker, args=(p,result))
+        delete_process.daemon = True
+        delete_process.start()
+        # t = Timer(10, deleter_worker, args=(p, result))
+        # t.start()
+        # time.sleep(10)
+        # p.send(['',(0,0,0), result[2]])
+    except:
+        pass
 
 def writer(v, buffer, pipe):
     write_process = Process(target=write_worker, args=(v,buffer,pipe,))

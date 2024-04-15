@@ -187,7 +187,7 @@ class opencv:
         cv2.putText(empty_frame, userMsg, (60, 290), cv2.FONT_HERSHEY_SIMPLEX, 4, (255,255,255),4,cv2.FILLED,False)
         cv2.putText(empty_frame, userMsg2, (60, 450), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,255),4,cv2.FILLED,False)
 
-        cv2.putText(empty_frame, bbMsg, (160, 550), cv2.FONT_HERSHEY_SIMPLEX, 1, bbMsgColor,2,cv2.FILLED,False)
+        cv2.putText(empty_frame, bbMsg, (160, 550), cv2.FONT_ITALIC, 1, bbMsgColor,2,cv2.FILLED,False)
 
         empty_frame = Rotate(empty_frame, 270)
         frame = np.hstack((frame, empty_frame))
