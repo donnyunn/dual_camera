@@ -40,24 +40,21 @@ def recorder(q,ctl):
     print("stop recording")
     v.quit()
 
-def delete_worker(p, result):
-    time.sleep(10)
-    p.send(['',(0,0,0), result[2]])
+# def delete_worker(p, result):
+#     time.sleep(10)
+#     p.send(['',(0,0,0), result[2]])
 
 def write_worker(v, buffer,p):
-    try:
-        p.send(["File Writing", (0,0,255), 0])
-        result = v.Record(buffer)
-        p.send([result[0], result[1], result[2]])
-        delete_process = Process(target=delete_worker, args=(p,result))
-        delete_process.daemon = True
-        delete_process.start()
-        # t = Timer(10, deleter_worker, args=(p, result))
-        # t.start()
-        # time.sleep(10)
-        # p.send(['',(0,0,0), result[2]])
-    except:
-        pass
+    p.send(["File Writing", (0,0,255), 0])
+    result = v.Record(buffer)
+    p.send([result[0], result[1], result[2]])
+    # delete_process = Process(target=delete_worker, args=(p,result))
+    # delete_process.daemon = True
+    # delete_process.start()
+    # t = Timer(10, deleter_worker, args=(p, result))
+    # t.start()
+    time.sleep(5)
+    p.send(['',(0,0,0), result[2]])
 
 def writer(v, buffer, pipe):
     write_process = Process(target=write_worker, args=(v,buffer,pipe,))
@@ -217,7 +214,7 @@ if __name__ == '__main__':
                 log(f'PLAY ON:{save}:{usb}')
             else:
                 state = mode.IDLE
-                # log('Key pressed Ready')
+                log('Key pressed Ready')
                 if blackbox_onoff == 1:
                     if blackbox_cnt != 0:
                         # log(f'Saving Manually.. ({len(BUFFER)-blackbox_cnt}:{len(BUFFER)-1})')
