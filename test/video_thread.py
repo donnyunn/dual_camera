@@ -294,6 +294,48 @@ if __name__ == '__main__':
             play_point = 0
             slow_level = 1
             BUFFER.clear()
+        elif key & 0xff == ord('z'):
+            state = mode.IDLE
+            log('Key pressed 10')
+            delay_point = FPS * 10
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
+        elif key & 0xff == ord('x'):
+            state = mode.IDLE
+            log('Key pressed 11')
+            delay_point = FPS * 11
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
+        elif key & 0xff == ord('c'):
+            state = mode.IDLE
+            log('Key pressed 12')
+            delay_point = FPS * 12
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
+        elif key & 0xff == ord('v'):
+            state = mode.IDLE
+            log('Key pressed 13')
+            delay_point = FPS * 13
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
+        elif key & 0xff == ord('b'):
+            state = mode.IDLE
+            log('Key pressed 14')
+            delay_point = FPS * 14
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
+        elif key & 0xff == ord('n'):
+            state = mode.IDLE
+            log('Key pressed 15')
+            delay_point = FPS * 15
+            play_point = 0
+            slow_level = 1
+            BUFFER.clear()
         if key & 0xff == ord('q'):
             log('Device OFF')
             control_queue.put(key)
