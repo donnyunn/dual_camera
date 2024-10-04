@@ -137,9 +137,9 @@ class opencv:
         # frame1 = frame2
 
         if not isNextFrameAvail1 or not isNextFrameAvail2:
-            print("notNextFrameAvail")
-            print(isNextFrameAvail1)
-            print(isNextFrameAvail2)
+            # print("notNextFrameAvail")
+            # print(isNextFrameAvail1)
+            # print(isNextFrameAvail2)
             return 0
         frame = getFrameStacked(frame1, frame2)
         return frame
